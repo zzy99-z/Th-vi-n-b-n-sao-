@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Astrology - Tự Động Hóa Bản Đồ Sao</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .loading { border-top-color: #3498db; animation: spinner 1.5s linear infinite; }
+        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen p-5">
+
+    <div class="max-w-4xl mx-auto">
+        <header class="text-center mb-10">
+            <h1 class="text-4xl font-bold text-yellow-500 mb-2">🌟 AI Astrology Explorer</h1>
+            <p class="text-gray-400">Tự động hóa kiến thức chiêm tinh học bằng AI</p>
+        </header>
+
+        <div class="bg-gray-800 p-6 rounded-lg shadow-lg mb-6 border border-gray-700">
+            <label class="block text-sm font-medium mb-2 text-yellow-400">API KEY (Gemini AI):</label>
+            <input type="password" id="apiKey" value="AIzaSyD1QmvrCb5_DPT5bz9k1BXLO8Ro7NRnjEk" 
+                   class="w-full p-2 bg-gray-700 rounded border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500">
+            <p class="text-xs text-gray-500 mt-2">* Key của bạn sẽ chỉ lưu trong phiên làm việc hiện tại của trình duyệt.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div class="bg-gray-800 p-4 rounded-lg border border-gray-700">
+                <h3 class="font-bold mb-3 border-b border-gray-600 pb-2">🪐 Hành Tinh</h3>
+                <select id="planet" class="w-full p-2 bg-gray-700 rounded mb-3">
+                    <option value="Mặt trời">Mặt trời (Sun)</option>
+                    <option value="Mặt trăng">Mặt trăng (Moon)</option>
+                    <option value="Thủy tinh">Thủy tinh (Mercury)</option>
+                    <option value="Kim tinh">Kim tinh (Venus)</option>
+                    <option value="Hỏa tinh">Hỏa tinh (Mars)</option>
+                </select>
+                <button onclick="learnAbout('Hành tinh ' + document.getElementById('planet').value)" 
+                        class="w-full bg-blue-600 hover:bg-blue-700 p-2 rounded transition">Tìm hiểu</button>
+            </div>
+
+            <div class="bg-gray-800 p-4 rounded-lg border border-gray-700">
+                <h3 class="font-bold mb-3 border-b border-gray-600 pb-2">🏠 Các Nhà</h3>
+                <input type="number" id="houseNum" min="1" max="12" value="1" class="w-full p-2 bg-gray-700 rounded mb-3">
+                <button onclick="learnAbout('Nhà số ' + document.getElementById('houseNum').value + ' trong bản đồ sao')" 
+                        class="w-full bg-purple-600 hover:bg-purple-700 p-2 rounded transition">Tìm hiểu</button>
+            </div>
+
+            <div class="bg-gray-800 p-4 rounded-lg border border-gray-700">
+                <h3 class="font-bold mb-3 border-b border-gray-600 pb-2">📐 Góc Chiếu</h3>
+                <select id="aspect" class="w-full p-2 bg-gray-700 rounded mb-3">
+                    <option value="Trùng">Trùng (0°)</option>
+                    <option value="Đối đỉnh">Đối đỉnh (180°)</option>
+                    <option value="Tam hợp">Tam hợp (120°)</option>
+                    <option value="Vuông góc">Vuông góc (90°)</option>
+                </select>
+                <button onclick="learnAbout('Góc chiếu ' + document.getElementById('aspect').value)" 
+                        class="w-full bg-green-600 hover:bg-green-700 p-2 rounded transition">Tìm hiểu</button>
+            </div>
+        </div>
+
+        <div id="outputSection" class="bg-gray-800 p-6 rounded-lg border border-gray-700 hidden">
+            <div id="loader" class="hidden flex justify-center mb-4">
+                <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 loading"></div>
+            </div>
+            <div id="resultContent" class="prose prose-invert max-w-none">
+                </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
+
+        window.learnAbout = async function(topic) {
+            const apiKey = document.getElementById('apiKey').value;
+            const outputDiv = document.getElementById('outputSection');
+            const resultContent = document.getElementById('resultContent');
+            const loader = document.getElementById('loader');
+
+            if (!apiKey) {
+                alert("Vui lòng nhập API Key!");
+                return;
+            }
+
+            // Show UI elements
+            outputDiv.classList.remove('hidden');
+            resultContent.innerHTML = "";
+            loader.classList.remove('hidden');
+
+            try {
+                const genAI = new GoogleGenerativeAI(apiKey);
+                const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+                const prompt = `Bạn là một chuyên gia chiêm tinh học. Hãy giải thích chi tiết về: ${topic}. 
+                                Gồm: Ý nghĩa, cách vận hành và 1 ví dụ. Định dạng HTML (dùng thẻ h2, p, li).`;
+
+                const result = await model.generateContent(prompt);
+                const response = await result.response;
+                const text = response.text();
+
+                loader.classList.add('hidden');
+                resultContent.innerHTML = text;
+
+            } catch (error) {
+                loader.classList.add('hidden');
+                resultContent.innerHTML = `<p class="text-red-500">Lỗi: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
